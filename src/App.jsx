@@ -255,8 +255,8 @@ function App() {
         </div>
 
         <p className="text-center text-gray-600 mt-6 text-xs sm:text-sm">
-          Hisob kunlik (60 000 so‘m/kun). To‘langan to‘lovlar uchun penya va
-          kechikish kunlari to‘lov kuni holatida qotib qoladi.
+          Hisob kunlik (60 000 so‘m/kun). To‘langan to‘lovlar uchun faqat
+          to‘langunga qadar penya hisoblanadi.
         </p>
       </div>
     </div>
