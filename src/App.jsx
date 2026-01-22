@@ -4,15 +4,15 @@ const PRINCIPAL_PER_PAYMENT = 1_490_000;
 const PENALTY_PER_DAY = 60_000;
 const MAX_PAYMENTS = 36;
 
-// To‘langan to‘lovlar va ularning penya miqdori (real loyihada bu ma'lumotlar bazadan keladi)
+// To‘langan to‘lovlar va ularning haqiqiy penya + kechikish kunlari
 const PAID_PAYMENTS = {
   9: {
     paid: true,
-    penaltyAccumulated: 180_000, // 9-to'lov uchun to'langunga qadar yig'ilgan penya
-    // paidDate: "2025-10-15"  // agar kerak bo'lsa real sanani qo'shish mumkin
+    penaltyAccumulated: 180_000, // 3 kun × 60 000
+    actualDaysLate: 3, // ← bu qator qo‘shildi: haqiqiy kechikish kunlari
   },
-  // Misol uchun boshqa to'lovlarni ham qo'shish mumkin:
-  // 5: { paid: true, penaltyAccumulated: 120_000 },
+  // Misol uchun boshqa to‘lovlar:
+  // 5: { paid: true, penaltyAccumulated: 120_000, actualDaysLate: 2 },
 };
 
 const generateDueDatesUpTo = (targetDate) => {
@@ -59,28 +59,32 @@ function App() {
       const calcDate = new Date(selectedDate + "T00:00:00");
       const dueDates = generateDueDatesUpTo(calcDate);
 
-      let principalSum = 0; // faqat to‘lanmagan to‘lovlarning asosiy qarzi
+      let principalSum = 0;
       let penaltySum = 0;
 
       const paymentDetails = dueDates.map((due) => {
         const order = due.order;
         const paymentInfo = PAID_PAYMENTS[order] || { paid: false };
 
+        // Hozirgi kechikish kunlari (faqat to‘lanmaganlar uchun ishlatiladi)
         const daysLateRaw = calcDate - due.date;
-        const daysLate = Math.max(
+        let currentDaysLate = Math.max(
           0,
-          Math.floor(daysLateRaw / (1000 * 60 * 60 * 24))
+          Math.floor(daysLateRaw / (1000 * 60 * 60 * 24)),
         );
 
+        let displayedDaysLate = currentDaysLate; // ekranda ko‘rsatiladigan kunlar
         let penalty = 0;
         let isPaid = paymentInfo.paid;
 
         if (isPaid) {
-          // To‘langan to‘lov: faqat to‘langunga qadar yig‘ilgan penya qo‘shiladi
+          // To‘langan to‘lov: penya va kechikish kunlari muzlatiladi
           penalty = paymentInfo.penaltyAccumulated || 0;
+          displayedDaysLate = paymentInfo.actualDaysLate || 0; // ← muzlatilgan qiymat
         } else {
-          // To‘lanmagan: penya to‘liq davom etadi
-          penalty = daysLate * PENALTY_PER_DAY;
+          // To‘lanmagan: penya va kunlar davom etadi
+          penalty = currentDaysLate * PENALTY_PER_DAY;
+          displayedDaysLate = currentDaysLate;
         }
 
         // Asosiy qarz faqat to‘lanmagan to‘lovlarga qo‘shiladi
@@ -89,14 +93,13 @@ function App() {
           penaltySum += penalty;
         }
 
-
         return {
           month: due.month,
           dueDateStr: due.dueDateStr,
           principal: PRINCIPAL_PER_PAYMENT,
-          daysLate,
+          daysLate: displayedDaysLate,
           penalty,
-          isLate: daysLate > 0 && !isPaid,
+          isLate: displayedDaysLate > 0 && !isPaid,
           isPaid,
         };
       });
@@ -113,7 +116,7 @@ function App() {
           year: "numeric",
         });
         setWarning(
-          `Eslatma: Faqat dastlabki 36 oy ko‘rsatilmoqda (2025-maydan ${maxMonthYear}gacha).`
+          `Eslatma: Faqat dastlabki 36 oy ko‘rsatilmoqda (2025-maydan ${maxMonthYear}gacha).`,
         );
       } else {
         setWarning("");
@@ -167,8 +170,8 @@ function App() {
                 payment.isPaid
                   ? "bg-blue-50 border-blue-300"
                   : payment.isLate
-                  ? "bg-red-50 border-red-300"
-                  : "bg-green-50 border-green-300"
+                    ? "bg-red-50 border-red-300"
+                    : "bg-green-50 border-green-300"
               }`}
             >
               {payment.isPaid && (
@@ -238,9 +241,7 @@ function App() {
             </span>
           </div>
           <div className="flex flex-col sm:flex-row justify-between gap-2">
-            <span className="font-semibold">
-              Umumiy penya:
-            </span>
+            <span className="font-semibold">Umumiy penya:</span>
             <span className="font-bold text-red-400 text-right">
               {formatSum(totalPenalty)}
             </span>
@@ -254,8 +255,8 @@ function App() {
         </div>
 
         <p className="text-center text-gray-600 mt-6 text-xs sm:text-sm">
-          Hisob kunlik (60 000 so‘m/kun). To‘langan to‘lovlar uchun faqat
-          to‘langunga qadar penya hisoblanadi.
+          Hisob kunlik (60 000 so‘m/kun). To‘langan to‘lovlar uchun penya va
+          kechikish kunlari to‘lov kuni holatida qotib qoladi.
         </p>
       </div>
     </div>
