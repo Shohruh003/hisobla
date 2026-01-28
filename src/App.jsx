@@ -44,7 +44,7 @@ const generateDueDatesUpTo = (targetDate) => {
 };
 
 function App() {
-  const today = new Date();
+  const today = "2026-01-28T23:59:59" ? new Date("2026-01-28T23:59:59") : "";
   const formattedToday = today.toISOString().split("T")[0];
 
   const [selectedDate, setSelectedDate] = useState(formattedToday);
@@ -145,15 +145,8 @@ function App() {
             htmlFor="date"
             className="block text-lg font-medium text-gray-700 mb-3"
           >
-            Hisob sanasini tanlang:
+            2026-01-28 ushbu sanada 28 mln 500 ming so'm olindi ✅
           </label>
-          <input
-            type="date"
-            id="date"
-            value={selectedDate}
-            onChange={handleDateChange}
-            className="w-full max-w-md mx-auto px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200"
-          />
         </div>
 
         {warning && (
@@ -236,6 +229,7 @@ function App() {
         <div className="bg-gray-900 text-white p-6 sm:p-8 rounded-2xl space-y-4 text-lg sm:text-xl">
           <div className="flex flex-col sm:flex-row justify-between gap-2">
             <span className="font-semibold">Umumiy oylik to‘lovlar:</span>
+            <span className="font-bold text-right">Yopildi ✅</span>
             <span className="font-bold text-right">
               {formatSum(totalPrincipal)}
             </span>
@@ -243,13 +237,16 @@ function App() {
           <div className="flex flex-col sm:flex-row justify-between gap-2">
             <span className="font-semibold">Umumiy penya:</span>
             <span className="font-bold text-red-400 text-right">
+              Yopilmadi ❌
+            </span>
+            <span className="font-bold text-red-400 text-right">
               {formatSum(totalPenalty)}
             </span>
           </div>
           <div className="flex flex-col sm:flex-row justify-between text-2xl sm:text-3xl font-bold pt-4 border-t-2 border-gray-600 gap-3">
             <span>JAMI QARZ:</span>
             <span className="text-yellow-300 text-right">
-              {formatSum(totalDebt)}
+              {formatSum(totalPenalty)}
             </span>
           </div>
         </div>
